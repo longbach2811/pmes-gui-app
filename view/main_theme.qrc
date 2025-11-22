@@ -1,0 +1,8 @@
+<RCC>
+  <qresource prefix="settings">
+    <file>setting-icon-614x460.png</file>
+  </qresource>
+  <qresource prefix="logo">
+    <file>csie_logo_transparent.png</file>
+  </qresource>
+</RCC>
