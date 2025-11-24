@@ -25,6 +25,10 @@ class MainController:
         self.main_view.show()
     
     def start_comminution_analysis(self):
+        if self.serial_model is None:
+            self.main_view.show_warning("Please connect to serial port first.")
+            return
+        
         self.main_view.append_log("Starting comminution analysis...")
         
         self.main_view.setEnabled(False)
@@ -32,7 +36,7 @@ class MainController:
         # Move motor to position to capture image
         try:
             self.serial_model.send_and_wait_ok("motor 0\n")
-            time.sleep(0.5)
+            time.sleep(1)
         except Exception as e:
             self.main_view.show_error(str(e))
         
@@ -42,7 +46,7 @@ class MainController:
         except Exception as e:
             self.main_view.show_error(str(e))
 
-        time.sleep(0.5)
+        time.sleep(1)
         # //////////////////////////////////
         # PUT CODE TO CAPTURE THE IMAGE HERE
         # //////////////////////////////////
@@ -52,7 +56,7 @@ class MainController:
             self.serial_model.send_and_wait_ok("led 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1\n")
         except Exception as e:
             self.main_view.show_error(str(e))
-        time.sleep(0.5)
+        time.sleep(1)
         
         self.main_view.setEnabled(True)
 
@@ -61,16 +65,22 @@ class MainController:
         # //////////////////////////////////
     
     def start_mixing_analysis(self):
+        if self.serial_model is None:
+            self.main_view.show_warning("Please connect to serial port first.")
+            return
+        
         self.main_view.append_log("Starting mixing analysis...")
+
+        self.main_view.setEnabled(False)
 
         # Move motor to position to capture image
         try:
             self.serial_model.send_and_wait_ok("motor 80\n")
-            time.sleep(0.5)
+            time.sleep(1)
         except Exception as e:
             self.main_view.show_error(str(e))
 
-        self.main_view.setEnabled(False)
+        
 
         # Turn on the led region 1 for mixing analysis
         try:
@@ -78,7 +88,7 @@ class MainController:
         except Exception as e:
             self.main_view.show_error(str(e))
 
-        time.sleep(0.5)
+        time.sleep(1)
         # //////////////////////////////////
         # PUT CODE TO CAPTURE THE IMAGE 1 HERE
         # ///////////////////////////////// 
@@ -89,7 +99,7 @@ class MainController:
         except Exception as e:
             self.main_view.show_error(str(e))
 
-        time.sleep(0.5)
+        time.sleep(1)
 
         # turn on the led region 2 for mixing analysis
         try:
@@ -97,7 +107,7 @@ class MainController:
         except Exception as e:
             self.main_view.show_error(str(e))
 
-        time.sleep(0.5)
+        time.sleep(1)
 
         # //////////////////////////////////
         # PUT CODE TO CAPTURE THE IMAGE 2 HERE
@@ -109,7 +119,7 @@ class MainController:
         except Exception as e:
             self.main_view.show_error(str(e))
 
-        time.sleep(0.5)
+        time.sleep(1)
 
         # Turn on the led region 3 for mixing analysis
         try:
@@ -117,7 +127,7 @@ class MainController:
         except Exception as e:
             self.main_view.show_error(str(e))
 
-        time.sleep(0.5)
+        time.sleep(1)
 
         # //////////////////////////////////
         # PUT CODE TO CAPTURE THE IMAGE 3 HERE
@@ -129,7 +139,7 @@ class MainController:
         except Exception as e:
             self.main_view.show_error(str(e))
 
-        time.sleep(0.5)
+        time.sleep(1)
 
         # Turn on the led region 4 for mixing analysis
         try:
@@ -137,7 +147,7 @@ class MainController:
         except Exception as e:
             self.main_view.show_error(str(e))
 
-        time.sleep(0.5)
+        time.sleep(1)
 
         # //////////////////////////////////
         # PUT CODE TO CAPTURE THE IMAGE 4 HERE
@@ -149,7 +159,7 @@ class MainController:
         except Exception as e:
             self.main_view.show_error(str(e))
 
-        time.sleep(0.5)
+        time.sleep(1)
 
         self.main_view.setEnabled(True)
 
