@@ -14,12 +14,148 @@ class MainController:
         # Develop button events of main_window
         self.main_view.connect_btn.clicked.connect(self.connect_serial)
         self.main_view.setting_btn.clicked.connect(self.open_settings)
+        self.main_view.analyze_comminution_btn.clicked.connect(self.start_comminution_analysis)
+        self.main_view.analyze_mixing_btn.clicked.connect(self.start_mixing_analysis)
 
         # Develop button events of settings_window
         self.settings_view.send_led_signal.connect(self.send_led_pattern)
         self.settings_view.closeEvent = self.on_settings_close
 
         self.main_view.show()
+    
+    def start_comminution_analysis(self):
+        self.main_view.append_log("Starting comminution analysis...")
+        
+        self.main_view.setEnabled(False)
+
+        # Move motor to position to capture image
+        try:
+            self.serial_model.send_and_wait_ok("motor 0\n")
+            time.sleep(0.5)
+        except Exception as e:
+            self.main_view.show_error(str(e))
+        
+        # Turn on 5 LED for comminution analysis
+        try:
+            self.serial_model.send_and_wait_ok("led 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1\n")
+        except Exception as e:
+            self.main_view.show_error(str(e))
+
+        time.sleep(0.5)
+        # //////////////////////////////////
+        # PUT CODE TO CAPTURE THE IMAGE HERE
+        # //////////////////////////////////
+
+        # Turn off 5 LED for comminution analysis
+        try:
+            self.serial_model.send_and_wait_ok("led 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1\n")
+        except Exception as e:
+            self.main_view.show_error(str(e))
+        time.sleep(0.5)
+        
+        self.main_view.setEnabled(True)
+
+        # //////////////////////////////////
+        # PUT CODE TO PROCESS THE IMAGE HERE
+        # //////////////////////////////////
+    
+    def start_mixing_analysis(self):
+        self.main_view.append_log("Starting mixing analysis...")
+
+        # Move motor to position to capture image
+        try:
+            self.serial_model.send_and_wait_ok("motor 80\n")
+            time.sleep(0.5)
+        except Exception as e:
+            self.main_view.show_error(str(e))
+
+        self.main_view.setEnabled(False)
+
+        # Turn on the led region 1 for mixing analysis
+        try:
+            self.serial_model.send_and_wait_ok("led 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n")
+        except Exception as e:
+            self.main_view.show_error(str(e))
+
+        time.sleep(0.5)
+        # //////////////////////////////////
+        # PUT CODE TO CAPTURE THE IMAGE 1 HERE
+        # ///////////////////////////////// 
+
+        # Turn off the led region 1 for mixing analysis
+        try:
+            self.serial_model.send_and_wait_ok("led 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n")
+        except Exception as e:
+            self.main_view.show_error(str(e))
+
+        time.sleep(0.5)
+
+        # turn on the led region 2 for mixing analysis
+        try:
+            self.serial_model.send_and_wait_ok("led 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0\n")
+        except Exception as e:
+            self.main_view.show_error(str(e))
+
+        time.sleep(0.5)
+
+        # //////////////////////////////////
+        # PUT CODE TO CAPTURE THE IMAGE 2 HERE
+        # //////////////////////////////////
+
+        # Turn off the led region 2 for mixing analysis
+        try:
+            self.serial_model.send_and_wait_ok("led 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0\n")
+        except Exception as e:
+            self.main_view.show_error(str(e))
+
+        time.sleep(0.5)
+
+        # Turn on the led region 3 for mixing analysis
+        try:
+            self.serial_model.send_and_wait_ok("led 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0\n")
+        except Exception as e:
+            self.main_view.show_error(str(e))
+
+        time.sleep(0.5)
+
+        # //////////////////////////////////
+        # PUT CODE TO CAPTURE THE IMAGE 3 HERE
+        # //////////////////////////////////
+
+        # Turn off the led region 3 for mixing analysis
+        try:
+            self.serial_model.send_and_wait_ok("led 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0\n")
+        except Exception as e:
+            self.main_view.show_error(str(e))
+
+        time.sleep(0.5)
+
+        # Turn on the led region 4 for mixing analysis
+        try:
+            self.serial_model.send_and_wait_ok("led 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0\n")
+        except Exception as e:
+            self.main_view.show_error(str(e))
+
+        time.sleep(0.5)
+
+        # //////////////////////////////////
+        # PUT CODE TO CAPTURE THE IMAGE 4 HERE
+        # //////////////////////////////////
+
+        # Turn off the led region 4 for mixing analysis
+        try:
+            self.serial_model.send_and_wait_ok("led 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0\n")
+        except Exception as e:
+            self.main_view.show_error(str(e))
+
+        time.sleep(0.5)
+
+        self.main_view.setEnabled(True)
+
+        # //////////////////////////////////
+        # PUT CODE TO PROCESS THE IMAGES HERE
+        # //////////////////////////////////
+
 
     def open_settings(self):
         try:
