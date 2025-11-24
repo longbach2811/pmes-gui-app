@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1130</width>
-    <height>816</height>
+    <width>1138</width>
+    <height>845</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -1675,10 +1675,10 @@
     <widget class="QToolButton" name="setting_btn">
      <property name="geometry">
       <rect>
-       <x>370</x>
+       <x>490</x>
        <y>10</y>
        <width>31</width>
-       <height>22</height>
+       <height>23</height>
       </rect>
      </property>
      <property name="sizePolicy">
@@ -1720,6 +1720,19 @@
        <string>115200</string>
       </property>
      </item>
+    </widget>
+    <widget class="QPushButton" name="connect_btn">
+     <property name="geometry">
+      <rect>
+       <x>370</x>
+       <y>10</y>
+       <width>111</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Connect</string>
+     </property>
     </widget>
    </widget>
   </widget>
