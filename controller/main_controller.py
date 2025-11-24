@@ -177,7 +177,7 @@ class MainController:
             self.main_view.setEnabled(False)
             self.settings_view.show()
             self.serial_model.send_and_wait_ok("led 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 0\n")
-            time.sleep(0.5) 
+            time.sleep(1) 
         except Exception as e:
             self.main_view.show_error(str(e))
 
