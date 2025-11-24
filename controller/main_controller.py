@@ -12,6 +12,7 @@ class MainController:
         self.settings_view = SettingsWindow()
 
         # Develop button events of main_window
+        self.serial_model = None
         self.main_view.connect_btn.clicked.connect(self.connect_serial)
         self.main_view.setting_btn.clicked.connect(self.open_settings)
         self.main_view.analyze_comminution_btn.clicked.connect(self.start_comminution_analysis)
@@ -158,6 +159,10 @@ class MainController:
 
 
     def open_settings(self):
+        if self.serial_model is None:
+            self.main_view.show_warning("Please connect to serial port first.")
+            return
+        
         try:
             self.main_view.setEnabled(False)
             self.settings_view.show()
