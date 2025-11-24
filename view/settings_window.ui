@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>545</width>
-    <height>257</height>
+    <width>497</width>
+    <height>227</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -314,19 +314,6 @@
    <property name="icon">
     <iconset>
      <normaloff>assets/change-2.png</normaloff>assets/change-2.png</iconset>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="close_btn">
-   <property name="geometry">
-    <rect>
-     <x>440</x>
-     <y>210</y>
-     <width>101</width>
-     <height>41</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Close</string>
    </property>
   </widget>
  </widget>
