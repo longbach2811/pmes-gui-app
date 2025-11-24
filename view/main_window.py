@@ -25,3 +25,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def show_error(self, msg: str):
         QtWidgets.QMessageBox.critical(self, "Error", msg)
+
+    def show_info(self, msg: str):
+        QtWidgets.QMessageBox.information(self, "Info", msg)
+
+    def show_warning(self, msg: str):
+        QtWidgets.QMessageBox.warning(self, "Warning", msg)
+
