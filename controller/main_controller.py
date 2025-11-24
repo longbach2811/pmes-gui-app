@@ -111,6 +111,7 @@ class MainController:
 
         # //////////////////////////////////
         # PUT CODE TO CAPTURE THE IMAGE 2 HERE
+        time.sleep(5)
         # //////////////////////////////////
 
         # Turn off the led region 2 for mixing analysis
