@@ -49,6 +49,7 @@ class MainController:
         time.sleep(1)
         # //////////////////////////////////
         # PUT CODE TO CAPTURE THE IMAGE HERE
+        time.sleep(5)
         # //////////////////////////////////
 
         # Turn off 5 LED for comminution analysis
@@ -111,7 +112,7 @@ class MainController:
 
         # //////////////////////////////////
         # PUT CODE TO CAPTURE THE IMAGE 2 HERE
-        time.sleep(5)
+        time.sleep(1)
         # //////////////////////////////////
 
         # Turn off the led region 2 for mixing analysis
