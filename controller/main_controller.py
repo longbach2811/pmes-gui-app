@@ -1,6 +1,7 @@
 # controller/main_controller.py
 from model import serial_model
 from model.serial_model import SerialModel
+from model.camera_model import CameraModel
 from view.main_window import MainWindow
 from view.settings_window import SettingsWindow
 from PyQt6.QtCore import QCoreApplication
@@ -12,12 +13,14 @@ class MainController:
         self.settings_view = SettingsWindow()
 
         # Load hyperparameters for camera
-        self.height = config['camera']['height']
-        self.width = config['camera']['width']
-        self.exposure_time = config['camera']['exposure_time']
-        self.exposure_auto = config['camera']['exposure_auto']
-        self.gain = config['camera']['gain']
-        self.gain_auto = config['camera']['gain_auto']
+        self.camera_config = {
+            'height': config['camera']['height'],
+            'width': config['camera']['width'],
+            'exposure_time': config['camera']['exposure_time'],
+            'exposure_auto': config['camera']['exposure_auto'],
+            'gain': config['camera']['gain'],
+            'gain_auto': config['camera']['gain_auto'],
+        }
 
         # Load hyperparameters for serial
         self.delay_time = config['serial']['delay_time']
@@ -47,21 +50,22 @@ class MainController:
 
         # Move motor to position to capture image
         try:
+            self.main_view.append_log("Initialize camera with config ... ")
+            self.camera_model = CameraModel(**self.camera_config)
+
             self.serial_model.send_and_wait_ok("motor 0\n")
             time.sleep(self.delay_time)
-
-        
             # Turn on 5 LED for comminution analysis
 
             self.serial_model.send_and_wait_ok("led 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1\n")
             time.sleep(self.delay_time)
             # //////////////////////////////////
             # PUT CODE TO CAPTURE THE IMAGE HERE
-            time.sleep(5)
+            img_data = self.camera_model.capture_image()
             # //////////////////////////////////
-
+            if img_data is None:
+                raise RuntimeError("Failed to capture image from camera.")
             # Turn off 5 LED for comminution analysis
-
             self.serial_model.send_and_wait_ok("led 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1\n")
             time.sleep(self.delay_time)
             
@@ -137,12 +141,9 @@ class MainController:
             # Turn off the led region 4 for mixing analysis
             self.serial_model.send_and_wait_ok("led 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0\n")
             time.sleep(self.delay_time)
-            time.sleep(self.delay_time)
-
             # //////////////////////////////////
             # PUT CODE TO PROCESS THE IMAGES HERE
             # //////////////////////////////////
-
             self.main_view.setEnabled(True)
         except Exception as e:
             self.main_view.show_error(str(e))
