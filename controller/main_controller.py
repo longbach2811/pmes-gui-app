@@ -7,9 +7,21 @@ from PyQt6.QtCore import QCoreApplication
 import time
 
 class MainController:
-    def __init__(self):
+    def __init__(self, config='configs/config.yaml'):
         self.main_view = MainWindow()
         self.settings_view = SettingsWindow()
+
+        # Load hyperparameters for camera
+        self.height = config['camera']['height']
+        self.width = config['camera']['width']
+        self.exposure_time = config['camera']['exposure_time']
+        self.exposure_auto = config['camera']['exposure_auto']
+        self.gain = config['camera']['gain']
+        self.gain_auto = config['camera']['gain_auto']
+
+        # Load hyperparameters for serial
+        self.delay_time = config['serial']['delay_time']
+
 
         # Develop button events of main_window
         self.serial_model = None
@@ -36,34 +48,31 @@ class MainController:
         # Move motor to position to capture image
         try:
             self.serial_model.send_and_wait_ok("motor 0\n")
-            time.sleep(1)
-        except Exception as e:
-            self.main_view.show_error(str(e))
+            time.sleep(self.delay_time)
+
         
-        # Turn on 5 LED for comminution analysis
-        try:
-            self.serial_model.send_and_wait_ok("led 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1\n")
-        except Exception as e:
-            self.main_view.show_error(str(e))
+            # Turn on 5 LED for comminution analysis
 
-        time.sleep(1)
-        # //////////////////////////////////
-        # PUT CODE TO CAPTURE THE IMAGE HERE
-        time.sleep(5)
-        # //////////////////////////////////
-
-        # Turn off 5 LED for comminution analysis
-        try:
             self.serial_model.send_and_wait_ok("led 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1\n")
-        except Exception as e:
-            self.main_view.show_error(str(e))
-        time.sleep(1)
+            time.sleep(self.delay_time)
+            # //////////////////////////////////
+            # PUT CODE TO CAPTURE THE IMAGE HERE
+            time.sleep(5)
+            # //////////////////////////////////
+
+            # Turn off 5 LED for comminution analysis
+
+            self.serial_model.send_and_wait_ok("led 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1\n")
+            time.sleep(self.delay_time)
+            
+            # //////////////////////////////////
+            # PUT CODE TO PROCESS THE IMAGE HERE
+            # //////////////////////////////////
+            self.main_view.setEnabled(True)
         
-        self.main_view.setEnabled(True)
-
-        # //////////////////////////////////
-        # PUT CODE TO PROCESS THE IMAGE HERE
-        # //////////////////////////////////
+        except Exception as e:
+            self.main_view.show_error(str(e))
+            self.main_view.setEnabled(True)
     
     def start_mixing_analysis(self):
         if self.serial_model is None:
@@ -77,98 +86,67 @@ class MainController:
         # Move motor to position to capture image
         try:
             self.serial_model.send_and_wait_ok("motor 80\n")
-            time.sleep(1)
-        except Exception as e:
-            self.main_view.show_error(str(e))
+            time.sleep(self.delay_time)
 
-        
+            # Turn on the led region 1 for mixing analysis
 
-        # Turn on the led region 1 for mixing analysis
-        try:
             self.serial_model.send_and_wait_ok("led 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n")
-        except Exception as e:
-            self.main_view.show_error(str(e))
+            time.sleep(self.delay_time)
+            # //////////////////////////////////
+            # PUT CODE TO CAPTURE THE IMAGE 1 HERE
+            # ///////////////////////////////// 
 
-        time.sleep(1)
-        # //////////////////////////////////
-        # PUT CODE TO CAPTURE THE IMAGE 1 HERE
-        # ///////////////////////////////// 
+            # Turn off the led region 1 for mixing analysis
 
-        # Turn off the led region 1 for mixing analysis
-        try:
             self.serial_model.send_and_wait_ok("led 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n")
-        except Exception as e:
-            self.main_view.show_error(str(e))
+            time.sleep(self.delay_time)
 
-        time.sleep(1)
+            # turn on the led region 2 for mixing analysis
 
-        # turn on the led region 2 for mixing analysis
-        try:
             self.serial_model.send_and_wait_ok("led 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0\n")
-        except Exception as e:
-            self.main_view.show_error(str(e))
+            time.sleep(self.delay_time)
 
-        time.sleep(1)
+            # //////////////////////////////////
+            # PUT CODE TO CAPTURE THE IMAGE 2 HERE
+            # //////////////////////////////////
 
-        # //////////////////////////////////
-        # PUT CODE TO CAPTURE THE IMAGE 2 HERE
-        time.sleep(1)
-        # //////////////////////////////////
-
-        # Turn off the led region 2 for mixing analysis
-        try:
+            # Turn off the led region 2 for mixing analysis
             self.serial_model.send_and_wait_ok("led 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0\n")
-        except Exception as e:
-            self.main_view.show_error(str(e))
+            time.sleep(self.delay_time)
 
-        time.sleep(1)
-
-        # Turn on the led region 3 for mixing analysis
-        try:
+            # Turn on the led region 3 for mixing analysis
             self.serial_model.send_and_wait_ok("led 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0\n")
-        except Exception as e:
-            self.main_view.show_error(str(e))
+            time.sleep(self.delay_time)
 
-        time.sleep(1)
+            # //////////////////////////////////
+            # PUT CODE TO CAPTURE THE IMAGE 3 HERE
+            # //////////////////////////////////
 
-        # //////////////////////////////////
-        # PUT CODE TO CAPTURE THE IMAGE 3 HERE
-        # //////////////////////////////////
-
-        # Turn off the led region 3 for mixing analysis
-        try:
+            # Turn off the led region 3 for mixing analysis
             self.serial_model.send_and_wait_ok("led 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0\n")
-        except Exception as e:
-            self.main_view.show_error(str(e))
+            time.sleep(self.delay_time)
 
-        time.sleep(1)
-
-        # Turn on the led region 4 for mixing analysis
-        try:
+            # Turn on the led region 4 for mixing analysis
             self.serial_model.send_and_wait_ok("led 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0\n")
-        except Exception as e:
-            self.main_view.show_error(str(e))
+            time.sleep(self.delay_time)
 
-        time.sleep(1)
+            # //////////////////////////////////
+            # PUT CODE TO CAPTURE THE IMAGE 4 HERE
+            # //////////////////////////////////
 
-        # //////////////////////////////////
-        # PUT CODE TO CAPTURE THE IMAGE 4 HERE
-        # //////////////////////////////////
-
-        # Turn off the led region 4 for mixing analysis
-        try:
+            # Turn off the led region 4 for mixing analysis
             self.serial_model.send_and_wait_ok("led 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0\n")
+            time.sleep(self.delay_time)
+            time.sleep(self.delay_time)
+
+            # //////////////////////////////////
+            # PUT CODE TO PROCESS THE IMAGES HERE
+            # //////////////////////////////////
+
+            self.main_view.setEnabled(True)
         except Exception as e:
             self.main_view.show_error(str(e))
-
-        time.sleep(1)
-
-        self.main_view.setEnabled(True)
-
-        # //////////////////////////////////
-        # PUT CODE TO PROCESS THE IMAGES HERE
-        # //////////////////////////////////
-
+            self.main_view.setEnabled(True)
 
     def open_settings(self):
         if self.serial_model is None:
@@ -182,6 +160,7 @@ class MainController:
             time.sleep(1) 
         except Exception as e:
             self.main_view.show_error(str(e))
+            self.main_view.setEnabled(True)
 
     def on_settings_close(self, event):
         self.serial_model.send_and_wait_ok("led 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 0\n")

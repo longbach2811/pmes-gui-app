@@ -1,0 +1,17 @@
+### CONFIG FOR CAMERA HYPERPARAMETERS
+camera:
+  height: 2160
+  width: 4200
+  exposure_time: 5000          # in microseconds
+  exposure_auto: 'Off'         # 'Off', 'Once', 'Continuous'
+  gain: 0.0                    # in dB
+  gain_auto: 'Off'             # 'Off', 'Once', 'Continuous'
+
+# -------------------------------------------------------------
+# CONFIG FOR SERIAL PORT HYPERPARAMETERS
+serial:
+  delay_time: 1                    # in seconds
+
+# -------------------------------------------------------------
+# CONFIG FOR IMAGE SAVE PATH
+image_save_path: 'captured_images/'
