@@ -185,10 +185,10 @@ class MainController:
             self.settings_view.setEnabled(False)
             self.serial_model.send_and_wait_ok(pattern)
             self.main_view.append_log("OK received")
-            time.sleep(self.delay_time)
             self.settings_view.setEnabled(True)
         except Exception as e:
             self.main_view.show_error(str(e))
+            self.settings_view.setEnabled(True)
 
     def handle_slider_change(self, idx, new_val):
         prev_val = self.settings_view.prev_values[idx]
@@ -213,6 +213,5 @@ class MainController:
         self.settings_view.setEnabled(False)
         for _ in range(abs(diff)):
             self.send_led_pattern(pattern)
-            time.sleep(self.delay_time)
         self.settings_view.setEnabled(True)
         self.settings_view.prev_values[idx] = new_val
