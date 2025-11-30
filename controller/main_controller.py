@@ -34,7 +34,8 @@ class MainController:
         self.main_view.analyze_mixing_btn.clicked.connect(self.start_mixing_analysis)
 
         # Develop button events of settings_window
-        self.settings_view.send_led_signal.connect(self.send_led_pattern)
+        self.settings_view.send_led_button.connect(self.send_led_pattern)
+        self.settings_view.slider_released.connect(self.handle_slider_change)
         self.settings_view.closeEvent = self.on_settings_close
 
         self.main_view.show()
@@ -181,8 +182,37 @@ class MainController:
 
     def send_led_pattern(self, pattern):
         try:
+            self.settings_view.setEnabled(False)
             self.serial_model.send_and_wait_ok(pattern)
             self.main_view.append_log("OK received")
-
+            time.sleep(self.delay_time)
+            self.settings_view.setEnabled(True)
         except Exception as e:
             self.main_view.show_error(str(e))
+
+    def handle_slider_change(self, idx, new_val):
+        prev_val = self.settings_view.prev_values[idx]
+        diff = new_val - prev_val
+
+        if diff == 0:
+            return
+
+        # define step patterns
+        dec_pattern, inc_pattern = {
+            1: ("led 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0",
+                "led 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0"),
+            2: ("led 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0",
+                "led 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0"),
+            3: ("led 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0",
+                "led 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0"),
+            4: ("led 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0",
+                "led 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0"),
+        }[idx]
+
+        pattern = inc_pattern if diff > 0 else dec_pattern
+        self.settings_view.setEnabled(False)
+        for _ in range(abs(diff)):
+            self.send_led_pattern(pattern)
+            time.sleep(self.delay_time)
+        self.settings_view.setEnabled(True)
+        self.settings_view.prev_values[idx] = new_val
