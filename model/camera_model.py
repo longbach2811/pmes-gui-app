@@ -159,7 +159,8 @@ if __name__ == '__main__':
         'exposure_time': 10000, 
         'exposure_auto': 'Off',
         'gain': 0.0,
-        'gain_auto': 'Off'
+        'gain_auto': 'Off',
+        'whitebalance_auto': 'Once'
     }
 
     # 1. INITIALIZE

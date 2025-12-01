@@ -2,10 +2,11 @@
 camera:
   height: 2160
   width: 4200
-  exposure_time: 5000          # in microseconds
+  exposure_time: 6534          # in microseconds
   exposure_auto: 'Off'         # 'Off', 'Once', 'Continuous'
-  gain: 0.0                    # in dB
+  gain: 8.50                    # in dB
   gain_auto: 'Off'             # 'Off', 'Once', 'Continuous'
+  'whitrebalance_auto': 'On'  # 'Off', 'Once', 'Continuous'
 
 # -------------------------------------------------------------
 # CONFIG FOR SERIAL PORT HYPERPARAMETERS
