@@ -25,47 +25,71 @@ class MainWindow(QtWidgets.QMainWindow):
             print(text)
 
     def visualize_image(self, image, q_label):
-        if image is None:
-            return
+            """
+            Displays a NumPy array (image) in a QLabel (q_label).
+            Handles 8-bit grayscale and 24-bit BGR (converts to RGB).
+            """
+            if image is None:
+                return
 
-        if len(image.shape) == 2:
-            h, w = image.shape
-            q_img = QtGui.QImage(
-                image.data,
-                w,
-                h,
-                w,
-                QtGui.QImage.Format.Format_Grayscale8
-            )
+            # Ensure the image array is C-contiguous. 
+            # QImage needs a contiguous memory buffer.
+            if not image.flags['C_CONTIGUOUS']:
+                image = image.copy(order='C')
 
-        elif len(image.shape) == 3:
-            # Convert BGR → RGB
-            rgb = image[:, :, ::-1] 
-            h, w, ch = rgb.shape
-            bytes_per_line = ch * w
+            q_img = None
 
-            q_img = QtGui.QImage(
-                rgb.data,
-                w,
-                h,
-                bytes_per_line,
-                QtGui.QImage.Format.Format_RGB888
-            )
+            if len(image.shape) == 2:
+                # Grayscale image (H, W)
+                h, w = image.shape
+                data = image.data
 
-        else:
-            self.show_error("Unsupported image format:", image.shape)
-            return
+                q_img = QtGui.QImage(
+                    data.tobytes(), # Convert memoryview to bytes
+                    w,
+                    h,
+                    w, # bytesPerLine = width (1 byte per pixel)
+                    QtGui.QImage.Format.Format_Grayscale8
+                )
 
-        pixmap = QtGui.QPixmap.fromImage(q_img)
+            elif len(image.shape) == 3:
+                # Color image (H, W, CH). Assuming BGR input from common libraries like OpenCV.
+                # Convert BGR (NumPy default) to RGB (QImage default)
+                rgb = image[:, :, ::-1] 
+                
+                # The slicing operation (::-1) makes the array non-contiguous. 
+                # Must copy the data into a C-contiguous buffer before passing to QImage.
+                rgb_contiguous = rgb.copy(order='C') 
 
-        pixmap = pixmap.scaled(
-            q_label.width(),
-            q_label.height(),
-            QtCore.Qt.AspectRatioMode.KeepAspectRatio,
-            QtCore.Qt.TransformationMode.SmoothTransformation
-        )
+                h, w, ch = rgb_contiguous.shape
+                bytes_per_line = ch * w
 
-        q_label.setPixmap(pixmap)
+                q_img = QtGui.QImage(
+                    rgb_contiguous.data.tobytes(), # Convert memoryview to bytes
+                    w,
+                    h,
+                    bytes_per_line,
+                    QtGui.QImage.Format.Format_RGB888
+                )
+
+            else:
+                self.show_error(f"Unsupported image format: {image.shape}")
+                return
+
+            if q_img:
+                # Convert QImage to QPixmap for display
+                pixmap = QtGui.QPixmap.fromImage(q_img)
+
+                # Scale the pixmap to fit the QLabel while maintaining aspect ratio
+                pixmap = pixmap.scaled(
+                    q_label.width(),
+                    q_label.height(),
+                    QtCore.Qt.AspectRatioMode.KeepAspectRatio,
+                    QtCore.Qt.TransformationMode.SmoothTransformation
+                )
+
+                # Display the scaled image
+                q_label.setPixmap(pixmap)
 
     def show_error(self, msg: str):
         QtWidgets.QMessageBox.critical(self, "Error", msg)
