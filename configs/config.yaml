@@ -6,7 +6,7 @@ camera:
   exposure_auto: 'Off'         # 'Off', 'Once', 'Continuous'
   gain: 8.50                    # in dB
   gain_auto: 'Off'             # 'Off', 'Once', 'Continuous'
-  'whitrebalance_auto': 'On'  # 'Off', 'Once', 'Continuous'
+  whitebalance_auto: 'On'  # 'Off', 'Once', 'Continuous'
 
 # -------------------------------------------------------------
 # CONFIG FOR SERIAL PORT HYPERPARAMETERS
