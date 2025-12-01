@@ -2,7 +2,7 @@ import pypylon.pylon as pylon
 import cv2
 
 class CameraModel:
-    def __init__(self, height=2160, width=4200, exposure_time=5000, exposure_auto='Off', gain=0.0, gain_auto='Off'):
+    def __init__(self, height=2160, width=4200, exposure_time=5000, exposure_auto='Off', gain=0.0, gain_auto='Off', whitebalance_auto='Once'):
         
         # 1. Initialize core attributes
         self.height = height
@@ -11,7 +11,7 @@ class CameraModel:
         self.exposure_auto = exposure_auto
         self.gain = gain
         self.gain_auto = gain_auto
-        
+        self.whitebalance_auto = whitebalance_auto
         self.camera = None
         self.converter = None
         self._initialize_camera()
@@ -77,6 +77,8 @@ class CameraModel:
                 if current_gain < self.camera.Gain.GetMin():
                     current_gain = self.camera.Gain.GetMin()
                 self.camera.Gain.SetValue(current_gain)
+
+            self.camera.BalanceWhiteAuto.SetValue(self.whitebalance_auto)
                 
             print(f"[DEBUG] Configuration applied: WxH={self.width}x{self.height}, Exp={self.exposure_time} us.")
 
@@ -127,7 +129,7 @@ class CameraModel:
     # -------------------------------------------------------------
     # Core method: Record Video
     # -------------------------------------------------------------
-    def record_video(self, filename='output.avi', duration_sec=5, fps=30.0):
+    def record_video(self):
       pass
 
     # -------------------------------------------------------------
@@ -138,7 +140,7 @@ class CameraModel:
         if self.camera and self.camera.IsOpen():
             self.camera.Close()
             print("Camera connection closed.")
-        pylon.PylonTerminate()
+        # pylon.PylonTerminate()
         cv2.destroyAllWindows()
 
 
