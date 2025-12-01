@@ -20,6 +20,7 @@ class MainController:
             'exposure_auto': config['camera']['exposure_auto'],
             'gain': config['camera']['gain'],
             'gain_auto': config['camera']['gain_auto'],
+            'whitebalance_auto': config['camera']['whitebalance_auto'],
         }
 
         # Load hyperparameters for serial
@@ -58,7 +59,7 @@ class MainController:
             time.sleep(self.delay_time)
             # Turn on 5 LED for comminution analysis
 
-            self.serial_model.send_and_wait_ok("led 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1\n")
+            self.serial_model.send_and_wait_ok("led 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 0\n")
             time.sleep(self.delay_time)
             # //////////////////////////////////
             # PUT CODE TO CAPTURE THE IMAGE HERE
@@ -67,7 +68,7 @@ class MainController:
             if img_data is None:
                 raise RuntimeError("Failed to capture image from camera.")
             # Turn off 5 LED for comminution analysis
-            self.serial_model.send_and_wait_ok("led 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1\n")
+            self.serial_model.send_and_wait_ok("led 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 0\n")
             time.sleep(self.delay_time)
             
             # //////////////////////////////////
