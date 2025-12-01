@@ -1,2 +1,5 @@
 pyqt6==6.10.0
 pyserial==3.5
+pypylon==4.2.0
+opencv-python==4.12.0.88
+pyyaml==6.0.3
