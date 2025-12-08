@@ -780,7 +780,7 @@
          </font>
         </property>
         <property name="text">
-         <string>Capture and anaalyze comminution samples</string>
+         <string>Capture and analyze comminution samples</string>
         </property>
        </widget>
        <widget class="QLabel" name="label_11">
@@ -1012,7 +1012,7 @@
          </font>
         </property>
         <property name="text">
-         <string>Capture and anaalyze mixing samples</string>
+         <string>Capture and analyze mixing samples</string>
         </property>
        </widget>
        <widget class="QLineEdit" name="lineEdit_4">

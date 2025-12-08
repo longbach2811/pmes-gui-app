@@ -11,6 +11,10 @@ class MainWindow(QtWidgets.QMainWindow):
         super().__init__()
         loadUi(os.path.join(os.path.dirname(__file__), "main_window.ui"), self)
 
+        self.settings = QtCore.QSettings("pmes-app", "pmes-gui")
+
+        self.load_settings()
+
     def get_port(self) -> str:
         return self.port_cb.currentText()  # QComboBox COM
 
@@ -100,3 +104,21 @@ class MainWindow(QtWidgets.QMainWindow):
     def show_warning(self, msg: str):
         QtWidgets.QMessageBox.warning(self, "Warning", msg)
 
+    def save_settings(self):
+        self.settings.setValue("serial/port", self.port_cb.currentText())
+        self.settings.setValue("serial/baud", self.baudrate_cb.currentText())
+    
+    def load_settings(self):
+        port = self.settings.value("serial/port", "")
+        baudrate = self.settings.value("serial/baud", "115200")
+        index = self.port_cb.findText(port)
+        if index != -1:
+            self.port_cb.setCurrentIndex(index)
+
+        index = self.baudrate_cb.findText(baudrate)
+        if index != -1:
+            self.baudrate_cb.setCurrentIndex(index)
+
+    def closeEvent(self, event):
+        self.save_settings()
+        super().closeEvent(event)
