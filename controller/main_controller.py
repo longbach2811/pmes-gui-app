@@ -4,13 +4,16 @@ from model.serial_model import SerialModel
 from model.camera_model import CameraModel
 from view.main_window import MainWindow
 from view.settings_window import SettingsWindow
+from view.dev_window import DevWindow
 from PyQt6.QtCore import QCoreApplication
 import time
+import cv2
 
 class MainController:
     def __init__(self, config='configs/config.yaml'):
         self.main_view = MainWindow()
         self.settings_view = SettingsWindow()
+        self.dev_view = DevWindow()
 
         # Load hyperparameters for camera
         self.camera_config = {
@@ -22,6 +25,7 @@ class MainController:
             'gain_auto': config['camera']['gain_auto'],
             'whitebalance_auto': config['camera']['whitebalance_auto'],
         }
+        self.config = config
 
         # Load hyperparameters for serial
         self.delay_time = config['serial']['delay_time']
@@ -33,11 +37,16 @@ class MainController:
         self.main_view.setting_btn.clicked.connect(self.open_settings)
         self.main_view.analyze_comminution_btn.clicked.connect(self.start_comminution_analysis)
         self.main_view.analyze_mixing_btn.clicked.connect(self.start_mixing_analysis)
+        self.main_view.dev_btn.clicked.connect(self.open_dev_window)
 
         # Develop button events of settings_window
         self.settings_view.send_led_button.connect(self.send_led_pattern)
         self.settings_view.slider_released.connect(self.handle_slider_change)
         self.settings_view.closeEvent = self.on_settings_close
+
+        # Develop button events of dev_window
+        self.dev_view.send_led_button.connect(self.send_led_pattern)
+        self.dev_view.move_motor_btn.clicked.connect(self.send_motor_position_dev)
 
         self.main_view.show()
     
@@ -71,6 +80,7 @@ class MainController:
             self.serial_model.send_and_wait_ok("led 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 0\n")
             time.sleep(self.delay_time)
             
+            self.main_view.visualize_image(img_data, self.main_view.comminution_segment_pb)
             # //////////////////////////////////
             # PUT CODE TO PROCESS THE IMAGE HERE
             # //////////////////////////////////
@@ -91,10 +101,11 @@ class MainController:
 
         # Move motor to position to capture image
         try:
-            self.serial_model.send_and_wait_ok("motor 80\n")
+            self.serial_model.send_and_wait_ok("motor 160\n")
             time.sleep(self.delay_time)
 
             # Turn on the led region 1 for mixing analysis
+            self.camera_model = CameraModel(**self.camera_config)
 
             self.serial_model.send_and_wait_ok("led 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n")
             time.sleep(self.delay_time)
@@ -214,5 +225,29 @@ class MainController:
         self.settings_view.setEnabled(False)
         for _ in range(abs(diff)):
             self.send_led_pattern(pattern)
+            time.sleep(self.delay_time)
         self.settings_view.setEnabled(True)
         self.settings_view.prev_values[idx] = new_val
+
+    def open_dev_window(self):
+        if self.serial_model is None:
+            self.main_view.show_warning("Please connect to serial port first.")
+            return
+        
+        self.dev_view.show()
+
+    
+    def send_motor_position_dev(self):
+        try:
+            position = self.dev_view.get_position()
+            if position is None:
+                return  # dừng luôn, không gửi lệnh hỏng
+
+            print("[DEBUG] Motor position to send:", position)
+            self.serial_model.send_and_wait_ok(f"motor {position}\n")
+            self.main_view.append_log(f"Motor moved to position {position}")
+
+        except ValueError:
+            self.main_view.show_error("Invalid motor position.")
+        except Exception as e:
+            self.main_view.show_error(str(e))
