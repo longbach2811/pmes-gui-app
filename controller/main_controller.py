@@ -113,6 +113,10 @@ class MainController:
         if self.main_view.local_radio.isChecked():
             img_path = self.main_view.open_file_dialog()
             img_data = cv2.imread(img_path)
+            if img_data is None:
+                self.main_view.show_warning("No image file selected.")
+                return
+
 
         segment_img, segment_mask, contours = segment_particles(img_data)
 
