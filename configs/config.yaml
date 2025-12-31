@@ -6,12 +6,16 @@ camera:
   exposure_auto: 'Off'         # 'Off', 'Once', 'Continuous'
   gain: 8.50                    # in dB
   gain_auto: 'Off'             # 'Off', 'Once', 'Continuous'
-  whitebalance_auto: 'On'  # 'Off', 'Once', 'Continuous'
+  whitebalance_auto: 'Continuous'  # 'Off', 'Once', 'Continuous'
 
 # -------------------------------------------------------------
 # CONFIG FOR SERIAL PORT HYPERPARAMETERS
 serial:
   delay_time: 1                    # in seconds
+
+disk_ref:
+  radius_mm: 70
+  radius_px: 1087
 
 # -------------------------------------------------------------
 # CONFIG FOR IMAGE SAVE PATH
