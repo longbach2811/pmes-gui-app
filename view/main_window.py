@@ -2,7 +2,11 @@
 from PyQt6 import QtWidgets
 from PyQt6.uic import loadUi
 from PyQt6 import QtGui, QtCore
+from matplotlib.backends.backend_agg import FigureCanvasAgg
+import numpy as np
 import os
+import tkinter as tk
+from tkinter import filedialog
 
 class MainWindow(QtWidgets.QMainWindow):
     """Main Window"""
@@ -94,6 +98,82 @@ class MainWindow(QtWidgets.QMainWindow):
 
                 # Display the scaled image
                 q_label.setPixmap(pixmap)
+
+    def visualize_figure(self, fig, q_label, dpi=500):
+        """
+        Render matplotlib normally, then scale to QLabel.
+        """
+
+        # --- Make figure high-res ---
+        fig.set_dpi(dpi)
+
+        fig.tight_layout(pad=0.6)
+
+        canvas = FigureCanvasAgg(fig)
+        canvas.draw()
+
+        buf = np.asarray(canvas.buffer_rgba())
+        h, w, _ = buf.shape
+
+        q_img = QtGui.QImage(
+            buf.data,
+            w,
+            h,
+            4 * w,
+            QtGui.QImage.Format.Format_RGBA8888
+        )
+
+        pixmap = QtGui.QPixmap.fromImage(q_img)
+
+        # --- Scale to QLabel ---
+        pixmap = pixmap.scaled(
+            q_label.width(),
+            q_label.height(),
+            QtCore.Qt.AspectRatioMode.IgnoreAspectRatio,
+            QtCore.Qt.TransformationMode.SmoothTransformation
+        )
+
+        q_label.setPixmap(pixmap)
+        
+    def update_particle_size_stats_ranges(
+        self,
+        particle_sizes,
+        list_widget: QtWidgets.QListWidget,
+        bin_size=0.01
+    ):
+        particle_sizes = np.asarray(particle_sizes)
+
+        if particle_sizes.size == 0:
+            list_widget.clear()
+            list_widget.addItem("No particle sizes provided.")
+            return
+
+        min_val = np.floor(particle_sizes.min() / bin_size) * bin_size
+        max_val = np.ceil(particle_sizes.max() / bin_size) * bin_size
+
+        bins = np.arange(min_val, max_val + bin_size, bin_size)
+        hist, bin_edges = np.histogram(particle_sizes, bins=bins)
+
+        list_widget.clear()
+        list_widget.addItem(f"Total {particle_sizes.size} particles per {bin_size:.2f} mm² range:")
+
+        for i in range(len(hist)):
+            if hist[i] == 0:
+                continue  # 👈 bỏ qua bin rỗng
+
+            list_widget.addItem(
+                f"{bin_edges[i]:.2f}–{bin_edges[i+1]:.2f} mm²: {hist[i]} particles"
+            )
+
+    
+    def open_file_dialog(self):
+        root = tk.Tk()
+        root.withdraw()
+        file_path = filedialog.askopenfilename(
+            title="Select a file",
+            filetypes=[("Image Files", "*.png *.jpg *.jpeg *.bmp *.tiff")]
+        )
+        return file_path
 
     def show_error(self, msg: str):
         QtWidgets.QMessageBox.critical(self, "Error", msg)

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1130</width>
-    <height>816</height>
+    <height>810</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -70,7 +70,7 @@
     <property name="geometry">
      <rect>
       <x>0</x>
-      <y>-19</y>
+      <y>0</y>
       <width>1089</width>
       <height>1049</height>
      </rect>
@@ -415,7 +415,7 @@
      <property name="title">
       <string>Mode</string>
      </property>
-     <widget class="QRadioButton" name="radioButton">
+     <widget class="QRadioButton" name="online_radio">
       <property name="enabled">
        <bool>true</bool>
       </property>
@@ -457,7 +457,7 @@
        </size>
       </property>
      </widget>
-     <widget class="QRadioButton" name="radioButton_2">
+     <widget class="QRadioButton" name="local_radio">
       <property name="enabled">
        <bool>true</bool>
       </property>
@@ -503,6 +503,9 @@
         <width>8</width>
         <height>8</height>
        </size>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
       </property>
      </widget>
     </widget>
@@ -564,7 +567,7 @@
          <height>599</height>
         </rect>
        </property>
-       <widget class="QLineEdit" name="lineEdit_5">
+       <widget class="QLineEdit" name="d10_box">
         <property name="enabled">
          <bool>false</bool>
         </property>
@@ -612,7 +615,7 @@
          <string>D50:</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_8">
+       <widget class="QLabel" name="comminution_analysis_pb">
         <property name="geometry">
          <rect>
           <x>0</x>
@@ -663,7 +666,7 @@
          <string>Chewing cycles:</string>
         </property>
        </widget>
-       <widget class="QListWidget" name="listWidget">
+       <widget class="QListWidget" name="particle_size_stats_box">
         <property name="geometry">
          <rect>
           <x>280</x>
@@ -828,10 +831,10 @@
          </font>
         </property>
         <property name="text">
-         <string>Particle staststics</string>
+         <string>Particle statistics</string>
         </property>
        </widget>
-       <widget class="QLineEdit" name="lineEdit_7">
+       <widget class="QLineEdit" name="d90_box">
         <property name="enabled">
          <bool>false</bool>
         </property>
@@ -876,7 +879,7 @@
          </font>
         </property>
        </widget>
-       <widget class="QLineEdit" name="lineEdit_6">
+       <widget class="QLineEdit" name="d50_box">
         <property name="enabled">
          <bool>false</bool>
         </property>
@@ -964,11 +967,11 @@
          <height>849</height>
         </rect>
        </property>
-       <widget class="QLabel" name="comminution_segment_pb_4">
+       <widget class="QLabel" name="mixing_hsv_pb">
         <property name="geometry">
          <rect>
           <x>280</x>
-          <y>90</y>
+          <y>80</y>
           <width>271</width>
           <height>241</height>
          </rect>
@@ -1036,11 +1039,11 @@
          </font>
         </property>
        </widget>
-       <widget class="QLabel" name="comminution_segment_pb_2">
+       <widget class="QLabel" name="mixing_capture_pb">
         <property name="geometry">
          <rect>
           <x>0</x>
-          <y>90</y>
+          <y>80</y>
           <width>271</width>
           <height>241</height>
          </rect>
@@ -1091,7 +1094,7 @@
         <property name="geometry">
          <rect>
           <x>0</x>
-          <y>70</y>
+          <y>60</y>
           <width>151</width>
           <height>16</height>
          </rect>
@@ -1115,7 +1118,7 @@
         <property name="geometry">
          <rect>
           <x>280</x>
-          <y>70</y>
+          <y>60</y>
           <width>151</width>
           <height>16</height>
          </rect>
@@ -1135,11 +1138,11 @@
          <string>HSV color space</string>
         </property>
        </widget>
-       <widget class="QLabel" name="label_17">
+       <widget class="QLabel" name="mixing_histogram_pb">
         <property name="geometry">
          <rect>
           <x>0</x>
-          <y>360</y>
+          <y>350</y>
           <width>551</width>
           <height>191</height>
          </rect>
@@ -1166,7 +1169,7 @@
         <property name="geometry">
          <rect>
           <x>0</x>
-          <y>340</y>
+          <y>330</y>
           <width>151</width>
           <height>16</height>
          </rect>
@@ -1210,7 +1213,7 @@
          <string>Variance of Hue:</string>
         </property>
        </widget>
-       <widget class="QLineEdit" name="lineEdit_9">
+       <widget class="QLineEdit" name="voh_box">
         <property name="enabled">
          <bool>false</bool>
         </property>
@@ -1258,7 +1261,7 @@
          <string>Standard of Hue:</string>
         </property>
        </widget>
-       <widget class="QLineEdit" name="lineEdit_10">
+       <widget class="QLineEdit" name="sdh_box">
         <property name="enabled">
          <bool>false</bool>
         </property>
