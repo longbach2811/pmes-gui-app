@@ -117,7 +117,6 @@ class MainController:
                 self.main_view.show_warning("No image file selected.")
                 return
 
-
         segment_img, segment_mask, contours = segment_particles(img_data)
 
         self.main_view.visualize_image(
