@@ -112,9 +112,6 @@ class MainController:
 
         if self.main_view.local_radio.isChecked():
             img_path = self.main_view.open_file_dialog()
-            if img_path is None:
-                self.main_view.show_warning("No image file selected.")
-                return
             img_data = cv2.imread(img_path)
 
         segment_img, segment_mask, contours = segment_particles(img_data)
@@ -185,6 +182,9 @@ class MainController:
         if self.main_view.local_radio.isChecked():
             img_path = self.main_view.open_file_dialog()
             img_data = cv2.imread(img_path)
+            if img_data is None:
+                self.main_view.show_warning("No image file selected.")
+                return
 
         chewing_gum_mask = hsv_segmentation(img_data, 54, 255)
         img_data = cv2.bitwise_and(img_data, img_data, mask=chewing_gum_mask)
