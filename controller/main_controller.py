@@ -1,4 +1,5 @@
 # controller/main_controller.py
+from PyQt5 import QtWidgets
 from model import serial_model
 from model.serial_model import SerialModel
 from model.camera_model import CameraModel
@@ -9,33 +10,46 @@ from PyQt6.QtCore import QCoreApplication
 import time
 import cv2
 
+from controller.src.comminution.segment_particle import segment_particles
+from controller.src.comminution.density_analysis import analyze_particle_density
+from controller.src.mixing.hsv_segmentation import hsv_segmentation
+from controller.src.mixing.histogram import get_hsv_histogram_figure
+from controller.src.mixing.h_indices_compute import compute_hue
+
+
 class MainController:
-    def __init__(self, config='configs/config.yaml'):
+    def __init__(self, config="configs/config.yaml"):
         self.main_view = MainWindow()
         self.settings_view = SettingsWindow()
         self.dev_view = DevWindow()
 
         # Load hyperparameters for camera
         self.camera_config = {
-            'height': config['camera']['height'],
-            'width': config['camera']['width'],
-            'exposure_time': config['camera']['exposure_time'],
-            'exposure_auto': config['camera']['exposure_auto'],
-            'gain': config['camera']['gain'],
-            'gain_auto': config['camera']['gain_auto'],
-            'whitebalance_auto': config['camera']['whitebalance_auto'],
+            "height": config["camera"]["height"],
+            "width": config["camera"]["width"],
+            "exposure_time": config["camera"]["exposure_time"],
+            "exposure_auto": config["camera"]["exposure_auto"],
+            "gain": config["camera"]["gain"],
+            "gain_auto": config["camera"]["gain_auto"],
+            "whitebalance_auto": config["camera"]["whitebalance_auto"],
         }
         self.config = config
 
         # Load hyperparameters for serial
-        self.delay_time = config['serial']['delay_time']
+        self.delay_time = config["serial"]["delay_time"]
 
+        # Load paramtter for pixel_size_mm
+        self.radius_mm = config["disk_ref"]["radius_mm"]
+        self.radius_px = config["disk_ref"]["radius_px"]
+        self.pixel_size_mm = self.radius_mm / self.radius_px
 
         # Develop button events of main_window
         self.serial_model = None
         self.main_view.connect_btn.clicked.connect(self.connect_serial)
         self.main_view.setting_btn.clicked.connect(self.open_settings)
-        self.main_view.analyze_comminution_btn.clicked.connect(self.start_comminution_analysis)
+        self.main_view.analyze_comminution_btn.clicked.connect(
+            self.start_comminution_analysis
+        )
         self.main_view.analyze_mixing_btn.clicked.connect(self.start_mixing_analysis)
         self.main_view.dev_btn.clicked.connect(self.open_dev_window)
 
@@ -49,129 +63,157 @@ class MainController:
         self.dev_view.move_motor_btn.clicked.connect(self.send_motor_position_dev)
 
         self.main_view.show()
-    
+
     def start_comminution_analysis(self):
-        if self.serial_model is None:
-            self.main_view.show_warning("Please connect to serial port first.")
-            return
-        
+
         self.main_view.append_log("Starting comminution analysis...")
-        
-        self.main_view.setEnabled(False)
 
-        # Move motor to position to capture image
-        try:
-            self.main_view.append_log("Initialize camera with config ... ")
-            self.camera_model = CameraModel(**self.camera_config)
+        if self.main_view.online_radio.isChecked():
+            if self.serial_model is None:
+                self.main_view.show_warning("Please connect to serial port first.")
+                return
+            self.main_view.setEnabled(False)
+            try:
+                self.main_view.append_log("Initialize camera with config ... ")
+                self.camera_model = CameraModel(**self.camera_config)
+                # Move motor to position to capture image
+                self.serial_model.send_and_wait_ok("motor 0\n")
+                time.sleep(self.delay_time)
+                # Turn on 5 LED for comminution analysis
 
-            self.serial_model.send_and_wait_ok("motor 0\n")
-            time.sleep(self.delay_time)
-            # Turn on 5 LED for comminution analysis
+                self.serial_model.send_and_wait_ok(
+                    "led 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 0\n"
+                )
+                time.sleep(self.delay_time)
+                # //////////////////////////////////
+                # PUT CODE TO CAPTURE THE IMAGE HERE
+                img_data = self.camera_model.capture_image()
+                # /////////////////////////////////
+                if img_data is None:
+                    self.main_view.show_error("Failed to capture image from camera.")
+                    self.main_view.setEnabled(True)
+                    return
+                cv2.imwrite("comminution_capture_test.png", img_data)
 
-            self.serial_model.send_and_wait_ok("led 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 0\n")
-            time.sleep(self.delay_time)
-            # //////////////////////////////////
-            # PUT CODE TO CAPTURE THE IMAGE HERE
-            img_data = self.camera_model.capture_image()
-            # //////////////////////////////////
-            if img_data is None:
-                raise RuntimeError("Failed to capture image from camera.")
-            # Turn off 5 LED for comminution analysis
-            self.serial_model.send_and_wait_ok("led 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 0\n")
-            time.sleep(self.delay_time)
-            
-            self.main_view.visualize_image(img_data, self.main_view.comminution_segment_pb)
-            # //////////////////////////////////
-            # PUT CODE TO PROCESS THE IMAGE HERE
-            # //////////////////////////////////
-            self.main_view.setEnabled(True)
-        
-        except Exception as e:
-            self.main_view.show_error(str(e))
-            self.main_view.setEnabled(True)
-    
+                # Turn off 5 LED for comminution analysis
+                self.serial_model.send_and_wait_ok(
+                    "led 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 0\n"
+                )
+                time.sleep(self.delay_time)
+
+                # Release camera resources
+                self.camera_model.close()
+
+                self.main_view.setEnabled(True)
+
+            except Exception as e:
+                self.main_view.show_error(str(e))
+                self.main_view.setEnabled(True)
+
+        if self.main_view.local_radio.isChecked():
+            img_path = self.main_view.open_file_dialog()
+            if img_path is None:
+                self.main_view.show_warning("No image file selected.")
+                return
+            img_data = cv2.imread(img_path)
+
+        segment_img, segment_mask, contours = segment_particles(img_data)
+
+        self.main_view.visualize_image(
+            segment_img, self.main_view.comminution_segment_pb
+        )
+
+        areas = [cv2.contourArea(c) for c in contours]
+        areas_mm2 = [area * (self.pixel_size_mm**2) for area in areas]
+
+        self.main_view.update_particle_size_stats_ranges(
+            areas_mm2, self.main_view.particle_size_stats_box, bin_size=0.01
+        )
+
+        fig, D10, D50, D90 = analyze_particle_density(areas_mm2)
+        self.main_view.visualize_figure(fig, self.main_view.comminution_analysis_pb)
+        self.main_view.d10_box.setText(f"{D10:.2f} mm2")
+        self.main_view.d50_box.setText(f"{D50:.2f} mm2")
+        self.main_view.d90_box.setText(f"{D90:.2f} mm2")
+
     def start_mixing_analysis(self):
-        if self.serial_model is None:
-            self.main_view.show_warning("Please connect to serial port first.")
-            return
-        
         self.main_view.append_log("Starting mixing analysis...")
 
-        self.main_view.setEnabled(False)
+        if self.main_view.online_radio.isChecked():
+            try:
+                if self.serial_model is None:
+                    self.main_view.show_warning("Please connect to serial port first.")
+                    return
+                self.main_view.setEnabled(False)
 
-        # Move motor to position to capture image
-        try:
-            self.serial_model.send_and_wait_ok("motor 160\n")
-            time.sleep(self.delay_time)
+                # Move motor to position to capture image
+                self.serial_model.send_and_wait_ok("motor 140\n")
+                time.sleep(self.delay_time)
 
-            # Turn on the led region 1 for mixing analysis
-            self.camera_model = CameraModel(**self.camera_config)
+                # Turn on the led region 1 for mixing analysis
+                self.camera_model = CameraModel(**self.camera_config)
 
-            self.serial_model.send_and_wait_ok("led 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n")
-            time.sleep(self.delay_time)
-            # //////////////////////////////////
-            # PUT CODE TO CAPTURE THE IMAGE 1 HERE
-            # ///////////////////////////////// 
+                self.serial_model.send_and_wait_ok(
+                    "led 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 0\n"
+                )
+                time.sleep(self.delay_time)
+                # //////////////////////////////////
+                # PUT CODE TO CAPTURE THE IMAGE 1 HERE
+                img_data = self.camera_model.capture_image()
+                # # /////////////////////////////////
+                if img_data is None:
+                    self.main_view.show_error("Failed to capture image from camera.")
+                    self.main_view.setEnabled(True)
+                    return
 
-            # Turn off the led region 1 for mixing analysis
+                cv2.imwrite("mixing_capture_test.png", img_data)
 
-            self.serial_model.send_and_wait_ok("led 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n")
-            time.sleep(self.delay_time)
+                # Turn off the led region 1 for mixing analysis
 
-            # turn on the led region 2 for mixing analysis
+                self.serial_model.send_and_wait_ok(
+                    "led 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 0\n"
+                )
+                time.sleep(self.delay_time)
 
-            self.serial_model.send_and_wait_ok("led 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0\n")
-            time.sleep(self.delay_time)
+                # Release camera resources
+                self.camera_model.close()
 
-            # //////////////////////////////////
-            # PUT CODE TO CAPTURE THE IMAGE 2 HERE
-            # //////////////////////////////////
+                self.main_view.setEnabled(True)
+            except Exception as e:
+                self.main_view.show_error(str(e))
+                self.main_view.setEnabled(True)
+        if self.main_view.local_radio.isChecked():
+            img_path = self.main_view.open_file_dialog()
+            img_data = cv2.imread(img_path)
 
-            # Turn off the led region 2 for mixing analysis
-            self.serial_model.send_and_wait_ok("led 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0\n")
-            time.sleep(self.delay_time)
+        chewing_gum_mask = hsv_segmentation(img_data, 54, 255)
+        img_data = cv2.bitwise_and(img_data, img_data, mask=chewing_gum_mask)
+        hsv_data = cv2.cvtColor(img_data, cv2.COLOR_BGR2HSV)
+        h_channel, s_channel, v_channel = cv2.split(hsv_data)
+        fig_hist = get_hsv_histogram_figure(
+            h_channel, s_channel, v_channel, chewing_gum_mask
+        )
+        voh, sdhue = compute_hue(h_channel[chewing_gum_mask > 0])
 
-            # Turn on the led region 3 for mixing analysis
-            self.serial_model.send_and_wait_ok("led 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0\n")
-            time.sleep(self.delay_time)
+        self.main_view.visualize_image(img_data, self.main_view.mixing_capture_pb)
+        self.main_view.visualize_image(hsv_data, self.main_view.mixing_hsv_pb)
+        self.main_view.visualize_figure(fig_hist, self.main_view.mixing_histogram_pb)
 
-            # //////////////////////////////////
-            # PUT CODE TO CAPTURE THE IMAGE 3 HERE
-            # //////////////////////////////////
-
-            # Turn off the led region 3 for mixing analysis
-            self.serial_model.send_and_wait_ok("led 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0\n")
-            time.sleep(self.delay_time)
-
-            # Turn on the led region 4 for mixing analysis
-            self.serial_model.send_and_wait_ok("led 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0\n")
-            time.sleep(self.delay_time)
-
-            # //////////////////////////////////
-            # PUT CODE TO CAPTURE THE IMAGE 4 HERE
-            # //////////////////////////////////
-
-            # Turn off the led region 4 for mixing analysis
-            self.serial_model.send_and_wait_ok("led 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0\n")
-            time.sleep(self.delay_time)
-            # //////////////////////////////////
-            # PUT CODE TO PROCESS THE IMAGES HERE
-            # //////////////////////////////////
-            self.main_view.setEnabled(True)
-        except Exception as e:
-            self.main_view.show_error(str(e))
-            self.main_view.setEnabled(True)
+        self.main_view.voh_box.setText(f"{voh:.2f}")
+        self.main_view.sdh_box.setText(f"{sdhue:.2f}")
 
     def open_settings(self):
         if self.serial_model is None:
             self.main_view.show_warning("Please connect to serial port first.")
             return
-        
+
         try:
             self.main_view.setEnabled(False)
             self.settings_view.show()
-            self.serial_model.send_and_wait_ok("led 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 0\n")
-            time.sleep(1) 
+            self.serial_model.send_and_wait_ok(
+                "led 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 0\n"
+            )
+            time.sleep(1)
         except Exception as e:
             self.main_view.show_error(str(e))
             self.main_view.setEnabled(True)
@@ -188,7 +230,9 @@ class MainController:
         try:
             self.serial_model = SerialModel(port, baud)
             self.main_view.append_log(f"Connected to {port} at {baud} baud.")
-            self.main_view.show_info(f"Connected successfully to {port} at {baud} baud.")
+            self.main_view.show_info(
+                f"Connected successfully to {port} at {baud} baud."
+            )
         except Exception as e:
             self.main_view.show_error(str(e))
 
@@ -211,14 +255,22 @@ class MainController:
 
         # define step patterns
         dec_pattern, inc_pattern = {
-            1: ("led 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0",
-                "led 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0"),
-            2: ("led 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0",
-                "led 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0"),
-            3: ("led 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0",
-                "led 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0"),
-            4: ("led 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0",
-                "led 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0"),
+            1: (
+                "led 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0",
+                "led 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0",
+            ),
+            2: (
+                "led 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0",
+                "led 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0",
+            ),
+            3: (
+                "led 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0",
+                "led 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0",
+            ),
+            4: (
+                "led 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0",
+                "led 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0",
+            ),
         }[idx]
 
         pattern = inc_pattern if diff > 0 else dec_pattern
@@ -233,10 +285,9 @@ class MainController:
         if self.serial_model is None:
             self.main_view.show_warning("Please connect to serial port first.")
             return
-        
+
         self.dev_view.show()
 
-    
     def send_motor_position_dev(self):
         try:
             position = self.dev_view.get_position()
