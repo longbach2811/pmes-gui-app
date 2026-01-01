@@ -305,7 +305,7 @@ class MainController:
         try:
             position = self.dev_view.get_position()
             if position is None:
-                return  # dừng luôn, không gửi lệnh hỏng
+                return
 
             print("[DEBUG] Motor position to send:", position)
             self.serial_model.send_and_wait_ok(f"motor {position}\n")
