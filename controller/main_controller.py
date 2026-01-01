@@ -205,14 +205,15 @@ class MainController:
 
             self.main_view.visualize_image(img_data, self.main_view.mixing_capture_pb)
             self.main_view.visualize_image(hsv_data, self.main_view.mixing_hsv_pb)
-            self.main_view.visualize_figure(fig_hist, self.main_view.mixing_histogram_pb)
+            self.main_view.visualize_figure(
+                fig_hist, self.main_view.mixing_histogram_pb
+            )
 
             self.main_view.voh_box.setText(f"{voh:.2f}")
             self.main_view.sdh_box.setText(f"{sdhue:.2f}")
 
         except Exception as e:
             self.main_view.show_error(str(e))
-
 
     def open_settings(self):
         if self.serial_model is None:
