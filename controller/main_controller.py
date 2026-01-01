@@ -117,24 +117,28 @@ class MainController:
                 self.main_view.show_warning("No image file selected.")
                 return
 
-        segment_img, segment_mask, contours = segment_particles(img_data)
+        try:
+            segment_img, segment_mask, contours = segment_particles(img_data)
 
-        self.main_view.visualize_image(
-            segment_img, self.main_view.comminution_segment_pb
-        )
+            self.main_view.visualize_image(
+                segment_img, self.main_view.comminution_segment_pb
+            )
 
-        areas = [cv2.contourArea(c) for c in contours]
-        areas_mm2 = [area * (self.pixel_size_mm**2) for area in areas]
+            areas = [cv2.contourArea(c) for c in contours]
+            areas_mm2 = [area * (self.pixel_size_mm**2) for area in areas]
 
-        self.main_view.update_particle_size_stats_ranges(
-            areas_mm2, self.main_view.particle_size_stats_box, bin_size=0.01
-        )
+            self.main_view.update_particle_size_stats_ranges(
+                areas_mm2, self.main_view.particle_size_stats_box, bin_size=0.01
+            )
 
-        fig, D10, D50, D90 = analyze_particle_density(areas_mm2)
-        self.main_view.visualize_figure(fig, self.main_view.comminution_analysis_pb)
-        self.main_view.d10_box.setText(f"{D10:.2f} mm2")
-        self.main_view.d50_box.setText(f"{D50:.2f} mm2")
-        self.main_view.d90_box.setText(f"{D90:.2f} mm2")
+            fig, D10, D50, D90 = analyze_particle_density(areas_mm2)
+            self.main_view.visualize_figure(fig, self.main_view.comminution_analysis_pb)
+            self.main_view.d10_box.setText(f"{D10:.2f} mm2")
+            self.main_view.d50_box.setText(f"{D50:.2f} mm2")
+            self.main_view.d90_box.setText(f"{D90:.2f} mm2")
+
+        except Exception as e:
+            self.main_view.show_error(str(e))
 
     def start_mixing_analysis(self):
         self.main_view.append_log("Starting mixing analysis...")
@@ -189,21 +193,26 @@ class MainController:
                 self.main_view.show_warning("No image file selected.")
                 return
 
-        chewing_gum_mask = hsv_segmentation(img_data, 54, 255)
-        img_data = cv2.bitwise_and(img_data, img_data, mask=chewing_gum_mask)
-        hsv_data = cv2.cvtColor(img_data, cv2.COLOR_BGR2HSV)
-        h_channel, s_channel, v_channel = cv2.split(hsv_data)
-        fig_hist = get_hsv_histogram_figure(
-            h_channel, s_channel, v_channel, chewing_gum_mask
-        )
-        voh, sdhue = compute_hue(h_channel[chewing_gum_mask > 0])
+        try:
+            chewing_gum_mask = hsv_segmentation(img_data, 54, 255)
+            img_data = cv2.bitwise_and(img_data, img_data, mask=chewing_gum_mask)
+            hsv_data = cv2.cvtColor(img_data, cv2.COLOR_BGR2HSV)
+            h_channel, s_channel, v_channel = cv2.split(hsv_data)
+            fig_hist = get_hsv_histogram_figure(
+                h_channel, s_channel, v_channel, chewing_gum_mask
+            )
+            voh, sdhue = compute_hue(h_channel[chewing_gum_mask > 0])
 
-        self.main_view.visualize_image(img_data, self.main_view.mixing_capture_pb)
-        self.main_view.visualize_image(hsv_data, self.main_view.mixing_hsv_pb)
-        self.main_view.visualize_figure(fig_hist, self.main_view.mixing_histogram_pb)
+            self.main_view.visualize_image(img_data, self.main_view.mixing_capture_pb)
+            self.main_view.visualize_image(hsv_data, self.main_view.mixing_hsv_pb)
+            self.main_view.visualize_figure(fig_hist, self.main_view.mixing_histogram_pb)
 
-        self.main_view.voh_box.setText(f"{voh:.2f}")
-        self.main_view.sdh_box.setText(f"{sdhue:.2f}")
+            self.main_view.voh_box.setText(f"{voh:.2f}")
+            self.main_view.sdh_box.setText(f"{sdhue:.2f}")
+
+        except Exception as e:
+            self.main_view.show_error(str(e))
+
 
     def open_settings(self):
         if self.serial_model is None:
