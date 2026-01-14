@@ -155,14 +155,14 @@ class MainWindow(QtWidgets.QMainWindow):
         hist, bin_edges = np.histogram(particle_sizes, bins=bins)
 
         list_widget.clear()
-        list_widget.addItem(f"Total {particle_sizes.size} particles per {bin_size:.2f} mm² range:")
+        list_widget.addItem(f"Total {particle_sizes.size} particles per {bin_size:.2f} mm range:")
 
         for i in range(len(hist)):
             if hist[i] == 0:
                 continue  # 👈 bỏ qua bin rỗng
 
             list_widget.addItem(
-                f"{bin_edges[i]:.2f}–{bin_edges[i+1]:.2f} mm²: {hist[i]} particles"
+                f"{bin_edges[i]:.2f}–{bin_edges[i+1]:.2f} mm: {hist[i]} particles"
             )
 
     
