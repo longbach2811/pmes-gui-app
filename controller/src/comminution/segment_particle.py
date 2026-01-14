@@ -30,16 +30,28 @@ def segment_particles(img_bgr, thresh_s=54):
     img_gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
     img_blurred = cv2.medianBlur(img_gray, 5)
 
+    # circles = cv2.HoughCircles(
+    #     img_blurred,
+    #     cv2.HOUGH_GRADIENT,
+    #     dp=1,
+    #     minDist=120,
+    #     param1=50,
+    #     param2=51,
+    #     minRadius=1150,
+    #     maxRadius=1200,
+    # )
+
     circles = cv2.HoughCircles(
-        img_blurred,
-        cv2.HOUGH_GRADIENT,
-        dp=1,
-        minDist=120,
-        param1=50,
-        param2=51,
-        minRadius=1150,
-        maxRadius=1200,
+        img_blurred, 
+        cv2.HOUGH_GRADIENT, 
+        dp=1,             
+        minDist=150,       
+        param1=50,         
+        param2=51,         
+        minRadius=1130,     
+        maxRadius=1200      
     )
+
 
     if circles is None:
         raise RuntimeError("No circles found")
@@ -61,6 +73,7 @@ def segment_particles(img_bgr, thresh_s=54):
     )
 
     crop_img, circle_mask_crop = crop_circle(img_bgr, (x, y), r - 10)
+    
     hsv_crop = cv2.cvtColor(crop_img, cv2.COLOR_BGR2HSV)
     s_channel_crop = hsv_crop[:, :, 1]
 
@@ -71,25 +84,43 @@ def segment_particles(img_bgr, thresh_s=54):
     mask_s = cv2.bitwise_and(mask_s, circle_mask_crop)
 
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
-    mask_s = cv2.morphologyEx(mask_s, cv2.MORPH_CLOSE, kernel)
+    mask_s = cv2.morphologyEx(mask_s, cv2.MORPH_CLOSE, kernel, iterations=2)
 
-    contours, _ = cv2.findContours(mask_s, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    print(f"[DEBUG] Contour find: {len(contours)}")
+    num_labels, labels, stats, _ = cv2.connectedComponentsWithStats(mask_s, connectivity=8)
+    print(f"[DEBUG] Connected components found: {num_labels - 1}")  
 
-    for i, cnt in enumerate(contours):
+    vis_img = crop_img.copy()
+    contours = []
+    valid_idx = 0
+    for i in range(1, num_labels):
+        # Create a mask for the current component to find its specific contour
+        component_mask = (labels == i).astype("uint8")
+        cnts, _ = cv2.findContours(component_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+        if not cnts:
+            continue
+
+        pixel_count = stats[i, cv2.CC_STAT_AREA]
+        if pixel_count <=1:
+            continue
+
+        contours.append(cnts[0])
+
+        bx, by, bw, bh = stats[i, cv2.CC_STAT_LEFT], stats[i, cv2.CC_STAT_TOP], stats[i, cv2.CC_STAT_WIDTH], stats[i, cv2.CC_STAT_HEIGHT]
+
         color = (
             random.randint(50, 255),
             random.randint(50, 255),
             random.randint(50, 255),
         )
-        cv2.drawContours(crop_img, [cnt], -1, color, 2)
-        bx, by, bw, bh = cv2.boundingRect(cnt)
-        cv2.rectangle(crop_img, (bx, by), (bx + bw, by + bh), color, 2)
+        cv2.drawContours(vis_img, cnts, -1, color, 2)  # Draw the contour outline
+        cv2.rectangle(vis_img, (bx, by), (bx + bw, by + bh), color, 2)
         cv2.putText(
-            crop_img, str(i), (bx, by - 5), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, 2
+            vis_img, str(valid_idx), (bx, by - 5), cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, 2
         )
+        valid_idx += 1
 
-    return crop_img, mask_s, contours
+    return vis_img, crop_img, mask_s, contours
 
 
 if __name__ == "__main__":
