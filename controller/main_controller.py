@@ -9,6 +9,7 @@ from view.dev_window import DevWindow
 from PyQt6.QtCore import QCoreApplication
 import time
 import cv2
+import numpy as np
 
 from controller.src.comminution.segment_particle import segment_particles
 from controller.src.comminution.density_analysis import analyze_particle_density
@@ -118,24 +119,32 @@ class MainController:
                 return
 
         try:
-            segment_img, segment_mask, contours = segment_particles(img_data)
+            segment_img, raw_crop, mask_s, contours = segment_particles(img_data)
 
             self.main_view.visualize_image(
                 segment_img, self.main_view.comminution_segment_pb
             )
 
-            areas = [cv2.contourArea(c) for c in contours]
-            areas_mm2 = [area * (self.pixel_size_mm**2) for area in areas]
+            density_area = [] 
+            for i, cnt in enumerate(contours):
+                particle_mask = np.zeros(mask_s.shape, dtype=np.uint8)
+                cv2.drawContours(particle_mask, [cnt], -1, 255, -1)
+                area = cv2.countNonZero(particle_mask)
+                density_area.append(area)
+            density_area = np.asarray(density_area)
+            areas_mm2 = density_area * (self.pixel_size_mm ** 2)
+            eq_diameter_mm = 2.0 * np.sqrt(areas_mm2 / np.pi)
 
             self.main_view.update_particle_size_stats_ranges(
-                areas_mm2, self.main_view.particle_size_stats_box, bin_size=0.01
+                eq_diameter_mm, self.main_view.particle_size_stats_box, bin_size=0.01
             )
 
-            fig, D10, D50, D90 = analyze_particle_density(areas_mm2)
+            fig, D10, D50, D90 = analyze_particle_density(eq_diameter_mm, log_scale=None)
+
             self.main_view.visualize_figure(fig, self.main_view.comminution_analysis_pb)
-            self.main_view.d10_box.setText(f"{D10:.2f} mm2")
-            self.main_view.d50_box.setText(f"{D50:.2f} mm2")
-            self.main_view.d90_box.setText(f"{D90:.2f} mm2")
+            self.main_view.d10_box.setText(f"{D10:.4f} mm")
+            self.main_view.d50_box.setText(f"{D50:.4f} mm")
+            self.main_view.d90_box.setText(f"{D90:.4f} mm")
 
         except Exception as e:
             self.main_view.show_error(str(e))
@@ -209,8 +218,8 @@ class MainController:
                 fig_hist, self.main_view.mixing_histogram_pb
             )
 
-            self.main_view.voh_box.setText(f"{voh:.2f}")
-            self.main_view.sdh_box.setText(f"{sdhue:.2f}")
+            self.main_view.voh_box.setText(f"{voh:.4f}")
+            self.main_view.sdh_box.setText(f"{sdhue:.4f}")
 
         except Exception as e:
             self.main_view.show_error(str(e))
