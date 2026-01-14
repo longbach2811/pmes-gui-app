@@ -1,12 +1,9 @@
 # controller/main_controller.py
-from PyQt5 import QtWidgets
-from model import serial_model
 from model.serial_model import SerialModel
 from model.camera_model import CameraModel
 from view.main_window import MainWindow
 from view.settings_window import SettingsWindow
 from view.dev_window import DevWindow
-from PyQt6.QtCore import QCoreApplication
 import time
 import cv2
 import numpy as np
