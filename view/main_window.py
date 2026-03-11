@@ -21,6 +21,36 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def get_port(self) -> str:
         return self.port_cb.currentText()  # QComboBox COM
+    
+    def get_comminution_chewing_cycles(self) -> int:
+        if int(self.cycles_b.text()) <= 0:
+            raise ValueError("Please enter a valid number of chewing cycles")
+        return str(self.cycles_b.text()) 
+    
+    def get_mixing_chewing_cycles_side_1(self) -> int:
+        if int(self.cycle_b_2.text()) <= 0:
+            raise ValueError("Please enter a valid number of chewing cycles for side 1")
+        return str(self.cycle_b_2.text())
+
+    def get_mixing_chewing_cycles_side_2(self) -> int:
+        if int(self.cycle_b_3.text()) <= 0:
+            raise ValueError("Please enter a valid number of chewing cycles for side 2")
+        return str(self.cycle_b_3.text())
+        
+    def get_name(self)->str:
+        name = self.name_box.text().strip()
+        if not name: 
+            raise ValueError("Please enter name")
+        return name
+    
+    def get_gender(self)->str:
+        return self.gender_cb.currentText() 
+    
+    def get_age(self)->str:
+        age = self.age_sb.value() 
+        if age <= 0:
+            raise ValueError("Please enter a valid age")
+        return str(age)  
 
     def get_baudrate(self) -> int:
         return int(self.baudrate_cb.currentText())
