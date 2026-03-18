@@ -5,8 +5,6 @@ from PyQt6 import QtGui, QtCore
 from matplotlib.backends.backend_agg import FigureCanvasAgg
 import numpy as np
 import os
-import tkinter as tk
-from tkinter import filedialog
 
 class MainWindow(QtWidgets.QMainWindow):
     """Main Window"""
@@ -28,14 +26,14 @@ class MainWindow(QtWidgets.QMainWindow):
         return str(self.cycles_b.text()) 
     
     def get_mixing_chewing_cycles_side_1(self) -> int:
-        if int(self.cycle_b_2.text()) <= 0:
+        if int(self.cycles_b_2.text()) <= 0:
             raise ValueError("Please enter a valid number of chewing cycles for side 1")
-        return str(self.cycle_b_2.text())
+        return str(self.cycles_b_2.text())
 
     def get_mixing_chewing_cycles_side_2(self) -> int:
-        if int(self.cycle_b_3.text()) <= 0:
+        if int(self.cycles_b_3.text()) <= 0:
             raise ValueError("Please enter a valid number of chewing cycles for side 2")
-        return str(self.cycle_b_3.text())
+        return str(self.cycles_b_3.text())
         
     def get_name(self)->str:
         name = self.name_box.text().strip()
@@ -189,7 +187,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         for i in range(len(hist)):
             if hist[i] == 0:
-                continue  # 👈 bỏ qua bin rỗng
+                continue 
 
             list_widget.addItem(
                 f"{bin_edges[i]:.2f}–{bin_edges[i+1]:.2f} mm: {hist[i]} particles"
@@ -197,11 +195,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
     
     def open_file_dialog(self):
-        root = tk.Tk()
-        root.withdraw()
-        file_path = filedialog.askopenfilename(
-            title="Select a file",
-            filetypes=[("Image Files", "*.png *.jpg *.jpeg *.bmp *.tiff")]
+        file_path, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self,
+            "Select a file",
+            "",
+            "Image Files (*.png *.jpg *.jpeg *.bmp *.tiff)"
         )
         return file_path
 
@@ -213,6 +211,13 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def show_warning(self, msg: str):
         QtWidgets.QMessageBox.warning(self, "Warning", msg)
+
+    def show_confirmation_dialog(self, msg: str) -> bool:
+        """Shows a confirmation dialog with Save and Cancel buttons. Returns True if Save is clicked."""
+        reply = QtWidgets.QMessageBox.question(self, 'Xác nhận lưu', msg,
+                                               QtWidgets.QMessageBox.StandardButton.Save | QtWidgets.QMessageBox.StandardButton.Cancel,
+                                               QtWidgets.QMessageBox.StandardButton.Cancel)
+        return reply == QtWidgets.QMessageBox.StandardButton.Save
 
     def save_settings(self):
         self.settings.setValue("serial/port", self.port_cb.currentText())
